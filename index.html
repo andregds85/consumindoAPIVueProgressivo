@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu primeiro Exemplo com Vue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Catamaran&family=Montserrat:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <div id="root">
+
+        <header>
+            <h1>Gerenciamento de Livros com Vue</h1>
+        </header>
+        <main>
+            <form v-on:submit.prevent="addLivro(formData)">
+
+                <div class="field">
+                    <label for="username-input">Nome</label>
+                    <input type="text" name="nome" id="username-input" placeholder="Digite o nome" v-model="formData.nome">
+                </div>
+
+                <div class="field">
+                    <label for="email-input">Descrição</label>
+                    <input type="text" name="descricao" id="email-input" placeholder="Digite a descricao" v-model="formData.descricao">
+                </div>
+                
+                <div class="field">
+                    <label for="email-input">Preço</label>
+                    <input type="text" name="preco" id="email-input" placeholder="Digite o Preço" v-model="formData.preco">
+                </div>     
+                <button type="submit">Cadastrar</button>
+
+            </form>
+
+            <div>
+
+                <h3>Lista de Livros</h3>
+                <ol>
+                    <li v-for="livro in livros" :key="livro.id">
+                        <input type="text" v-model="livro.nome" v-on:change="setLivro(livro)">
+                        <input type="text" v-model="livro.descricao" v-on:change="setLivro(livro)">
+                        <input type="text" v-model="livro.preco" v-on:change="setLivro(livro)">
+                        <button class="livro-delete" @click="removeLivro(livro.id)">Excluir</button>
+                    </li>
+                </ol>
+
+            </div>
+
+        </main>
+
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+
+    <script>
+        const server = "http://apilivros.tk/api/public/api";
+        new Vue({
+            el: '#root',
+            data: {
+                livros: [],
+                formData: {}
+            },
+            async created() {
+
+                let results = await axios.get(`${server}/livros`);
+                this.livros = results.data;
+
+            },
+            methods: {
+                async addLivro(data) {
+                    if (!data.nome) {
+                        alert('Informe o nome');
+                    } else if (!data.descricao) {
+                        alert('Informe o descrição');
+                    } else {
+                        
+                        let results = await axios.post(`${server}/livros`, data);
+
+                        this.livros.push({
+                            id: results.data.id,
+                            nome: results.data.nome,
+                            descricao: results.data.descricao
+                       });
+                        
+                    }
+                },
+                async setLivro(data) {
+
+                    if (!data.nome) {
+                        alert('Informe o nome');
+                    } else if (!data.descricao) {
+                        alert('Informe o descricao');
+                    } else {
+                        
+                        await axios.patch(`${server}/livros/${data.id}`, data);
+                        
+                    }
+                    
+                },
+                async removeLivro(id) {
+                    await axios.delete(`${server}/livros/${id}`);
+                    this.livros = this.livros.filter(livro => {
+                        return (livro.id != id);
+                    })
+                }
+            }
+        })
+
+    </script>
+
+</body>
+</html>
+
